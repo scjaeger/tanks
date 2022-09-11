@@ -1,9 +1,0 @@
-name: tanks
-channels:
- - python
-dependencies:
-- python=3.9
-- pip
-- pip:
-  - pygame
-  - windows-curses
