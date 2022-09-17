@@ -2,16 +2,17 @@ import pygame
 import math
 from src.constants.constants import WIDTH, WIN, WHITE, HEIGHT, STAT_FONT
 from src.elements.bullet import Bullet
+import random
 
 class Tank:
 
     def __init__(self, GENERAL_TANK_SETTINGS, angle, x, left_aim_button, right_aim_button, move_left_button, move_right_button, shoot_button, color):
         
         # appearance
-        self.angle = math.radians(angle)
+        self.angle = math.radians(angle[0] + random.randint(-angle[1], angle[1]))
         self.top_radius = GENERAL_TANK_SETTINGS["top_radius"]
         self.y = GENERAL_TANK_SETTINGS["start_y"] - self.top_radius
-        self.x = x
+        self.x = x[0] + random.randint(-x[1], x[1])
         self.color = color
         self.pipe_x = int(self.x + math.cos(self.angle) * 2 * self.top_radius)
         self.pipe_y = int(self.y - math.sin(self.angle) * 2 * self.top_radius)
@@ -26,9 +27,11 @@ class Tank:
         self.move_left = move_left_button
         self.move_right = move_right_button
 
-        # performance
-        self.performace = 10
+        # performance 
         self.shield = GENERAL_TANK_SETTINGS["shield"]
+        self.hits = 0
+        self.close_hits = 0
+        self.ammo_used = 0
 
         if self.x < WIDTH // 2:
             self.left_limit = 2*self.top_radius
@@ -38,24 +41,33 @@ class Tank:
             self.right_limit = WIDTH - 2*self.top_radius
 
 
-    def move(self, keys):
-        if keys[self.move_left] and self.x >self.left_limit:
+    def move(self, left = True):
+        if left and self.x >self.left_limit:
             self.x -= 1
-        elif keys[self.move_right] and self.x < self.right_limit:
+
+        elif not left and self.x < self.right_limit:
             self.x += 1
 
+        else:
+            pass
+        
+        self.pipe_x = int(self.x + math.cos(self.angle) * 2 * self.top_radius)
+        self.pipe_y = int(self.y - math.sin(self.angle) * 2 * self.top_radius)
 
-    def shoot(self, keys):
-        if keys[self.shoot_button] and not self.shots_fired:
+
+    def shoot(self):
+        if not self.shots_fired:
             self.bullet.start_shot(self.pipe_x, self.pipe_y, self.angle)
-            self.performace -= 1
             self.shots_fired = True
+            self.ammo_used += 1
 
-    def aim(self, keys):
-        if keys[self.aim_left] and  self.angle < math.pi:
+    def aim(self, left = True):
+        if left and self.angle < math.pi:
             self.angle += self.aim_step
-        elif keys[self.aim_right] and  self.angle > 0:
-            self.angle -= self.aim_step   
+        elif not left and self.angle > 0:
+            self.angle -= self.aim_step 
+        else:
+            pass  
 
         self.pipe_x = int(self.x + math.cos(self.angle) * 2 * self.top_radius)
         self.pipe_y = int(self.y - math.sin(self.angle) * 2 * self.top_radius)

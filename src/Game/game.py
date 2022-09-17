@@ -1,5 +1,5 @@
 import pygame
-from src.constants.constants import   FPS, GENERAL_TANK_SETTINGS, LEFT_TANK_SETTINGS, RIGHT_TANK_SETTINGS, BIG_FONT, WIN, BLACK, HEIGHT, WHITE, WIDTH
+from src.constants.constants import   FPS, GENERAL_TANK_SETTINGS, LEFT_TANK_SETTINGS, RIGHT_TANK_SETTINGS, BIG_FONT, STAT_FONT, WIN, BLACK, HEIGHT, WHITE, WIDTH
 from src.elements.tanks import Tank
 
 class Game():
@@ -11,38 +11,64 @@ class Game():
         self.right_tank = Tank(GENERAL_TANK_SETTINGS, *RIGHT_TANK_SETTINGS.values())
         self.window = WIN
         self.fps = FPS
+        self.countdown = 500
 
     
-    def loop(self):
+    def loop(self, decisions = None, fps = True):
+
+        # check if game is closed by pressing the x-button
         self.check_game_quit()
 
-        self.clock.tick(self.fps)
+        # limits the game to given frames per second if True
+        if fps:
+            self.clock.tick(self.fps)
         
+        # draw elements on the game window
         self.draw()
 
-        self.handle_controls()
+        # movement of game elements. If decision by AI else by user
+        if decisions:
+            for tank, decision in zip([self.left_tank, self.right_tank], decisions):
+                self.decide_action(decision, tank)
+        else:
+            self.handle_controls()
         
+        # test if bullets collide with hit boxes
         self.check_hit()
 
+        # check for shields and finish the game if they are gone
         if self.check_win():
             self.finished = True
 
-        print("left: {}, right: {}".format(self.left_tank.performace, self.right_tank.performace))
+        self.countdown -= 1
 
         return None
 
     def draw(self):
+        # draw background
         self.window.fill(BLACK)
+
+        # print timer
+        win_text = "countdown = {} ".format(self.countdown)
+        text = STAT_FONT.render(win_text, 1, WHITE)
+        WIN.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
+
+        # draw tanks
         for tank in [self.left_tank, self.right_tank]:
             tank.draw()
+
+            # draw bullets
             if tank.shots_fired:
                 tank.bullet.draw()
+
+        # update window
         pygame.display.update()
 
         return None
 
 
     def check_game_quit(self):
+        # check if quit button is pressed
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.run = False
@@ -51,20 +77,40 @@ class Game():
 
 
     def handle_controls(self):
+        # get user-key interactions
         keys = pygame.key.get_pressed()
-        for tank in [self.left_tank, self.right_tank]:
-            tank.aim(keys)
-            tank.move(keys)
-            if tank.shots_fired:
-                tank.bullet.move()
+
+        # loop through tanks
+        for left in [True, False]:
+            if left:
+                tank_1 = self.left_tank
+                tank_2 = self.right_tank
             else:
-                tank.shoot(keys)
-            tank.bullet.check_reset(tank)
+                tank_1 = self.right_tank
+                tank_2 = self.left_tank
+            
+            # start action according to pressed keys
+            if keys[tank_1.aim_left]:
+                tank_1.aim(left = True)
+            if keys[tank_1.aim_right]:
+                tank_1.aim(left = False)
+            if keys[tank_1.move_left]:
+                tank_1.move(left=True)
+            if keys[tank_1.move_right]:
+                tank_1.move(left=False)
+            if tank_1.shots_fired:
+                tank_1.bullet.move()
+            elif keys[tank_1.shoot_button]:
+                tank_1.shoot()
+            
+            # check if bullet hits ground, then reload
+            tank_1.bullet.check_reset(tank_1, tank_2)
 
         return None
 
     
     def check_hit(self):
+        # loop through tanks
         for left in [True, False]:
             if left:
                 tank_1 = self.left_tank
@@ -73,26 +119,47 @@ class Game():
                 tank_1 = self.right_tank
                 tank_2 = self.left_tank
 
+            # set hit box
             hit_box = {
                 "left": tank_1.x - 2*tank_1.top_radius,
                 "right": tank_1.x + 2*tank_1.top_radius,
                 "top": HEIGHT - 2* tank_1.top_radius
                 }
+            # check collision of bullet and hit box
             if hit_box["left"] < tank_2.bullet.x < hit_box["right"] and tank_2.bullet.y > hit_box["top"]:
-                tank_2.performace += 5
+
+                # reload and set stats
                 tank_2.shots_fired = False
                 tank_1.shield -= 1
-                tank_1.performace -= 2
                 tank_2.bullet.__init__(self.right_tank.color)
 
 
     def check_win(self):
         for tank, name in zip([self.left_tank, self.right_tank], ["right", "left"]):
+
+            # check left over shield
             if tank.shield <= 0:
+
+                # print text for winer
                 win_text = "{} player is victorious!".format(name)
                 text = BIG_FONT.render(win_text, 1, WHITE)
                 WIN.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
+
+                # pause game to celebrate victory
                 pygame.display.update()
                 pygame.time.delay(3000)
                 
                 return True
+
+    def decide_action(self, decision, tank):
+        # assign actions to ai decisions
+        if decision == 0:
+            tank.shoot()
+        elif decision == 1:
+            tank.move(left = True)
+        elif decision == 2:
+            tank.move(left = False)
+        elif decision == 3:
+            tank.aim(left = True)
+        elif decision == 4:
+            tank.aim(left = False)

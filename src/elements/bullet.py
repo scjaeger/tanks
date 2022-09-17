@@ -28,7 +28,9 @@ class Bullet():
         self.y += self.y_vel
         self.y_vel += GENERAL_TANK_SETTINGS["gravity"]
 
-    def check_reset(self, tank):
+    def check_reset(self, tank_1, tank_2):
         if self.x < 0 or self.x > WIDTH or self.y > HEIGHT:
+            tank_1.shots_fired = False
+            tank_1.close_hits += max(0, 50 - (abs(tank_2.x - self.x)))
             self.__init__(self.color)
-            tank.shots_fired = False
+            

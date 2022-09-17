@@ -1,5 +1,5 @@
 import pygame
-import random
+
 pygame.init()
 
 # Screen settings
@@ -26,8 +26,8 @@ GENERAL_TANK_SETTINGS = {
 }
 
 LEFT_TANK_SETTINGS = {
-    "start_angle": 45 + random.randint(-5, 5),
-    "start_x": 100 + random.randint(-70, 70),
+    "start_angle": [45, 5],
+    "start_x": [100, 70],
     "aim_left": pygame.K_w,
     "aim_right": pygame.K_s,
     "move_left": pygame.K_a,
@@ -37,8 +37,8 @@ LEFT_TANK_SETTINGS = {
 }
 
 RIGHT_TANK_SETTINGS = {
-    "start_angle": 135 + random.randint(-5, 5),
-    "start_position": WIDTH - 100 + random.randint(-70, 70),
+    "start_angle": [135, 5],
+    "start_position":  [WIDTH - 100, 70],
     "aim_left": pygame.K_DOWN,
     "aim_right": pygame.K_UP,
     "move_left": pygame.K_LEFT,
