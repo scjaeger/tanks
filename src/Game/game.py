@@ -9,6 +9,8 @@ class Game():
         self.clock = pygame.time.Clock()
         self.left_tank = Tank(GENERAL_TANK_SETTINGS, *LEFT_TANK_SETTINGS.values())
         self.right_tank = Tank(GENERAL_TANK_SETTINGS, *RIGHT_TANK_SETTINGS.values())
+        self.left_tank.enemy = self.right_tank
+        self.right_tank.enemy = self.left_tank
         self.window = WIN
         self.fps = FPS
         self.countdown = 1000
@@ -81,57 +83,42 @@ class Game():
         # get user-key interactions
         keys = pygame.key.get_pressed()
 
-        # loop through tanks
-        for left in [True, False]:
-            if left:
-                tank_1 = self.left_tank
-                tank_2 = self.right_tank
-            else:
-                tank_1 = self.right_tank
-                tank_2 = self.left_tank
-            
+        for tank in [self.left_tank, self.right_tank]:
             # start action according to pressed keys
-            if keys[tank_1.aim_left]:
-                tank_1.aim(left = True)
-            if keys[tank_1.aim_right]:
-                tank_1.aim(left = False)
-            if keys[tank_1.move_left]:
-                tank_1.move(left=True)
-            if keys[tank_1.move_right]:
-                tank_1.move(left=False)
+            if keys[tank.aim_left]:
+                tank.aim(left = True)
+            if keys[tank.aim_right]:
+                tank.aim(left = False)
+            if keys[tank.move_left]:
+                tank.move(left=True)
+            if keys[tank.move_right]:
+                tank.move(left=False)
 
-            elif keys[tank_1.shoot_button]:
-                tank_1.shoot()
+            elif keys[tank.shoot_button]:
+                tank.shoot()
             
             # check if bullet hits ground, then reload
-            tank_1.bullet.check_reset(tank_1, tank_2)
+            tank.bullet.check_reset(tank, tank.enemy)
 
         return None
 
     
     def check_hit(self):
-        # loop through tanks
-        for left in [True, False]:
-            if left:
-                tank_1 = self.left_tank
-                tank_2 = self.right_tank
-            else:
-                tank_1 = self.right_tank
-                tank_2 = self.left_tank
+        for tank in [self.left_tank, self.right_tank]:
 
             # set hit box
             hit_box = {
-                "left": tank_1.x - 2*tank_1.top_radius,
-                "right": tank_1.x + 2*tank_1.top_radius,
-                "top": HEIGHT - 2* tank_1.top_radius
+                "left": tank.x - 2*tank.top_radius,
+                "right": tank.x + 2*tank.top_radius,
+                "top": HEIGHT - 2* tank.top_radius
                 }
             # check collision of bullet and hit box
-            if hit_box["left"] < tank_2.bullet.x < hit_box["right"] and tank_2.bullet.y > hit_box["top"]:
+            if hit_box["left"] < tank.enemy.bullet.x < hit_box["right"] and tank.enemy.bullet.y > hit_box["top"]:
 
                 # reload and set stats
-                tank_2.shots_fired = False
-                tank_1.shield -= 1
-                tank_2.bullet.__init__(self.right_tank.color)
+                tank.enemy.shots_fired = False
+                tank.shield -= 1
+                tank.enemy.bullet.__init__(self.right_tank.color)
 
 
     def check_win(self, frame_limit = True):

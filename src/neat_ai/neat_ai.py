@@ -58,11 +58,12 @@ class NeatGame():
     def calculate_fitness(self, genome1, genome2):
         # add points to fitness score
         for genome, tank in zip([genome1, genome2], [self.left_tank, self.right_tank]):
-            added_fitness = tank.shield *25
-            added_fitness += tank.hits * 100
+            added_fitness = tank.shield
+            added_fitness += tank.hits * 10
             #added_fitness += tank.ammo_used
             added_fitness += tank.close_hits
 
 
             genome.fitness += added_fitness
+            print(genome.fitness)
             

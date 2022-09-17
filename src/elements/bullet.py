@@ -32,6 +32,7 @@ class Bullet():
     def check_reset(self, tank_1, tank_2):
         if self.x < 0 or self.x > WIDTH or self.y > HEIGHT:
             tank_1.shots_fired = False
-            tank_1.close_hits += max(0, 50 - (abs(tank_2.x - self.x)))
+            close_hit_score = round((5 - abs(tank_2.x - self.x))/10, 0)
+            tank_1.close_hits += max(0, close_hit_score)
             self.__init__(self.color)
             

@@ -27,6 +27,9 @@ class Tank:
         self.move_left = move_left_button
         self.move_right = move_right_button
 
+        # game
+        self.enemy = None
+
         # performance 
         self.shield = GENERAL_TANK_SETTINGS["shield"]
         self.hits = 0
