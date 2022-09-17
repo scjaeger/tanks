@@ -43,18 +43,15 @@ class NeatGame():
             decision_1 = output_1.index(max(output_1))
             decision_2 = output_2.index(max(output_2))
 
-            if 0 in [decision_1, decision_2]:
-                print("left shot: {}, right shot: {}".format(self.left_tank.shots_fired, self.right_tank.shots_fired))
-
             # go through basic game steps
-            self.game.loop([decision_1, decision_2], fps = True)
+            self.game.loop([decision_1, decision_2], frame_limit = False)
 
             # end game if manually quitted
             if not self.game.run:
                 quit()
 
             # end game if one side has won or timer is down to 0
-            if self.game.check_win() or self.game.countdown <= 0:
+            if self.game.check_win(frame_limit = False) or self.game.countdown <= 0:
                 self.calculate_fitness(genome1, genome2)
                 break
 
@@ -63,8 +60,9 @@ class NeatGame():
         for genome, tank in zip([genome1, genome2], [self.left_tank, self.right_tank]):
             added_fitness = tank.shield *25
             added_fitness += tank.hits * 100
-            added_fitness += tank.ammo_used
+            #added_fitness += tank.ammo_used
             added_fitness += tank.close_hits
 
+
             genome.fitness += added_fitness
-            print(genome.fitness)
+            

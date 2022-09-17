@@ -11,16 +11,16 @@ class Game():
         self.right_tank = Tank(GENERAL_TANK_SETTINGS, *RIGHT_TANK_SETTINGS.values())
         self.window = WIN
         self.fps = FPS
-        self.countdown = 500
+        self.countdown = 1000
 
     
-    def loop(self, decisions = None, fps = True):
+    def loop(self, decisions = None, frame_limit = True):
 
         # check if game is closed by pressing the x-button
         self.check_game_quit()
 
         # limits the game to given frames per second if True
-        if fps:
+        if frame_limit:
             self.clock.tick(self.fps)
         
         # draw elements on the game window
@@ -37,7 +37,7 @@ class Game():
         self.check_hit()
 
         # check for shields and finish the game if they are gone
-        if self.check_win():
+        if self.check_win(frame_limit):
             self.finished = True
 
         self.countdown -= 1
@@ -59,6 +59,7 @@ class Game():
 
             # draw bullets
             if tank.shots_fired:
+                tank.bullet.move()
                 tank.bullet.draw()
 
         # update window
@@ -98,8 +99,7 @@ class Game():
                 tank_1.move(left=True)
             if keys[tank_1.move_right]:
                 tank_1.move(left=False)
-            if tank_1.shots_fired:
-                tank_1.bullet.move()
+
             elif keys[tank_1.shoot_button]:
                 tank_1.shoot()
             
@@ -134,7 +134,7 @@ class Game():
                 tank_2.bullet.__init__(self.right_tank.color)
 
 
-    def check_win(self):
+    def check_win(self, frame_limit = True):
         for tank, name in zip([self.left_tank, self.right_tank], ["right", "left"]):
 
             # check left over shield
@@ -145,9 +145,10 @@ class Game():
                 text = BIG_FONT.render(win_text, 1, WHITE)
                 WIN.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
 
-                # pause game to celebrate victory
-                pygame.display.update()
-                pygame.time.delay(3000)
+                if frame_limit:
+                    # pause game to celebrate victory
+                    pygame.display.update()
+                    pygame.time.delay(3000)
                 
                 return True
 
@@ -163,3 +164,4 @@ class Game():
             tank.aim(left = True)
         elif decision == 4:
             tank.aim(left = False)
+        tank.bullet.check_reset(tank, tank)

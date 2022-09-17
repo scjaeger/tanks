@@ -12,6 +12,7 @@ class Bullet():
         self.x_vel = 0
         self.y_vel = 0
         self.color = color
+        # active
 
     def start_shot(self, x, y, angle):
         self.x = x
