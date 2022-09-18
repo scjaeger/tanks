@@ -26,7 +26,7 @@ class NeatGame():
         return config
 
     def eval_genomes(self, genomes,  config):
-
+        print("eval genomes activated")
         for i, (genome_id1, genome1) in enumerate(genomes):
             if i ==len(genomes) -1:
                 break
@@ -36,8 +36,8 @@ class NeatGame():
                 game = NeatGame()
                 game.train_ai(genome1, genome2, config)
     
-    def run_neat(self, config):
-        pop = neat.Population(config)
+    def run_neat(self):
+        pop = neat.Population(self.config)
         pop.add_reporter(neat.StdOutReporter(True))
         stats = neat.StatisticsReporter()
         pop.add_reporter(stats)
