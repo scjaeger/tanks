@@ -22,7 +22,8 @@ GENERAL_TANK_SETTINGS = {
     "bullet_size": 4,
     "gravity": 0.15,
     "start_y": HEIGHT,
-    "shield": 3
+    "shield": 3,
+    "reload time": 90
 }
 
 LEFT_TANK_SETTINGS = {
@@ -47,3 +48,5 @@ RIGHT_TANK_SETTINGS = {
     "color": WHITE
 }
 
+# AI
+CONFIG_PATH = "src/neat_ai/config.txt"

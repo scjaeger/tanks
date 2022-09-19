@@ -26,7 +26,7 @@ class Game():
             self.clock.tick(self.fps)
         
         # draw elements on the game window
-        self.draw()
+        self.update()
 
         # movement of game elements. If decision by AI else by user
         if decisions:
@@ -46,23 +46,25 @@ class Game():
 
         return None
 
-    def draw(self):
+    def update(self):
         # draw background
         self.window.fill(BLACK)
 
         # print timer
-        win_text = "countdown = {} ".format(self.countdown)
-        text = STAT_FONT.render(win_text, 1, WHITE)
-        WIN.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
+        # win_text = "countdown = {} ".format(self.countdown)
+        # text = STAT_FONT.render(win_text, 1, WHITE)
+        # WIN.blit(text, (WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
 
-        # draw tanks
+        # update tanks
         for tank in [self.left_tank, self.right_tank]:
+            tank.reload -= 1
             tank.draw()
 
-            # draw bullets
-            if tank.shots_fired:
-                tank.bullet.move()
-                tank.bullet.draw()
+            # update bullets
+            for bullet_id, bullet in enumerate(tank.bullet):
+                bullet.check_reset(tank, tank.enemy, bullet_id)
+                bullet.move()
+                bullet.draw()
 
         # update window
         pygame.display.update()
@@ -96,29 +98,27 @@ class Game():
 
             elif keys[tank.shoot_button]:
                 tank.shoot()
-            
-            # check if bullet hits ground, then reload
-            tank.bullet.check_reset(tank, tank.enemy)
 
         return None
 
     
     def check_hit(self):
         for tank in [self.left_tank, self.right_tank]:
-
             # set hit box
             hit_box = {
                 "left": tank.x - 2*tank.top_radius,
                 "right": tank.x + 2*tank.top_radius,
                 "top": HEIGHT - 2* tank.top_radius
                 }
-            # check collision of bullet and hit box
-            if hit_box["left"] < tank.enemy.bullet.x < hit_box["right"] and tank.enemy.bullet.y > hit_box["top"]:
 
-                # reload and set stats
-                tank.enemy.shots_fired = False
-                tank.shield -= 1
-                tank.enemy.bullet.__init__(self.right_tank.color)
+            for bullet_id, bullet in enumerate(tank.enemy.bullet):
+                
+                # check collision of bullet and hit box
+                if hit_box["left"] < bullet.x < hit_box["right"] and bullet.y > hit_box["top"]:
+
+                    # reload and set stats
+                    del tank.enemy.bullet[bullet_id]
+                    tank.shield -= 1
 
 
     def check_win(self, frame_limit = True):
@@ -151,4 +151,3 @@ class Game():
             tank.aim(left = True)
         elif decision == 4:
             tank.aim(left = False)
-        tank.bullet.check_reset(tank, tank)

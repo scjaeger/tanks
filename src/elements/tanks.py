@@ -1,6 +1,6 @@
 import pygame
 import math
-from src.constants.constants import WIDTH, WIN, WHITE, HEIGHT, STAT_FONT
+from src.constants.constants import GENERAL_TANK_SETTINGS, WIDTH, WIN, WHITE, HEIGHT, STAT_FONT
 from src.elements.bullet import Bullet
 import random
 
@@ -22,19 +22,19 @@ class Tank:
         self.aim_left = left_aim_button
         self.aim_right = right_aim_button
         self.shoot_button = shoot_button
-        self.shots_fired = False
-        self.bullet = Bullet(self.color)
+        self.reload = 0
+        self.bullet =   []
         self.move_left = move_left_button
         self.move_right = move_right_button
 
         # game
         self.enemy = None
 
+
         # performance 
         self.shield = GENERAL_TANK_SETTINGS["shield"]
         self.hits = 0
         self.close_hits = 0
-        self.ammo_used = 0
 
         if self.x < WIDTH // 2:
             self.left_limit = 2*self.top_radius
@@ -59,10 +59,10 @@ class Tank:
 
 
     def shoot(self):
-        if not self.shots_fired:
-            self.bullet.start_shot(self.pipe_x, self.pipe_y, self.angle)
-            self.shots_fired = True
-            self.ammo_used += 1
+        if self.reload <= 0:
+            self.bullet.append(Bullet(self.pipe_x, self.pipe_y, self.angle,self.color))
+            self.reload = GENERAL_TANK_SETTINGS["reload time"]
+
 
     def aim(self, left = True):
         if left and self.angle < math.pi:

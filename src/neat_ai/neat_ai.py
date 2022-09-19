@@ -1,7 +1,7 @@
 from src.game.game import Game
 import pygame
 import neat
-from src.constants.constants import WIN
+from src.constants.constants import WIDTH, HEIGHT, CONFIG_PATH
 import math
 
 
@@ -10,8 +10,40 @@ class NeatGame():
         self.game = Game()
         self.left_tank = self.game.left_tank
         self.right_tank = self.game.right_tank
+        self.config = self.set_config()
 
 
+    def set_config(self):
+        config_path = CONFIG_PATH
+        config = neat.Config(
+            neat.DefaultGenome, 
+            neat.DefaultReproduction,
+            neat.DefaultSpeciesSet,
+            neat.DefaultStagnation,
+            config_path
+            )
+
+        return config
+
+    def eval_genomes(self, genomes,  config):
+        print("eval genomes activated")
+        for i, (genome_id1, genome1) in enumerate(genomes):
+            if i ==len(genomes) -1:
+                break
+            genome1.fitness = 0
+            for genome_id2, genome2 in genomes[i+1:]:
+                genome2.fitness = 0 if genome2.fitness == None else genome2.fitness
+                game = NeatGame()
+                game.train_ai(genome1, genome2, config)
+    
+    def run_neat(self):
+        pop = neat.Population(self.config)
+        pop.add_reporter(neat.StdOutReporter(True))
+        stats = neat.StatisticsReporter()
+        pop.add_reporter(stats)
+        pop.add_reporter(neat.Checkpointer(1))
+
+        winner = pop.run(self.eval_genomes, 50)
     
 
     def train_ai(self, genome1, genome2, config):
@@ -23,21 +55,10 @@ class NeatGame():
         while self.game.run:
             
             # get outputs of neural networks dependend on input feed
-            output_1 = net1.activate((
-                # self.left_tank.x, 
-                self.left_tank.angle, 
-                self.right_tank.x - self.left_tank.x,
-                self.right_tank.bullet.x - self.left_tank.x,
-                self.right_tank.bullet.y
-                ))
 
-            output_2 = net2.activate((
-                # self.right_tank.x, 
-                self.right_tank.angle, 
-                self.left_tank.x - self.right_tank.x,
-                self.left_tank.bullet.x - self.right_tank.x,
-                self.left_tank.bullet.y
-                ))
+            output_1 = net1.activate(self.get_nn_inputs(self.left_tank))
+
+            output_2 = net2.activate(self.get_nn_inputs(self.right_tank))
 
             # get decision by index of highest activation of output
             decision_1 = output_1.index(max(output_1))
@@ -60,10 +81,24 @@ class NeatGame():
         for genome, tank in zip([genome1, genome2], [self.left_tank, self.right_tank]):
             added_fitness = tank.shield
             added_fitness += tank.hits * 10
-            #added_fitness += tank.ammo_used
             added_fitness += tank.close_hits
 
 
             genome.fitness += added_fitness
             print(genome.fitness)
             
+
+    def get_nn_inputs(self, tank):
+        angle = tank.angle
+        tank_distance = tank.enemy.x - tank.x
+        if len(tank.enemy.bullet) >= 1:
+            bullet_distance = tank.enemy.bullet[0].x - tank.x
+            bullet_height = tank.enemy.bullet[0].y
+        else:
+            bullet_distance = WIDTH * 2
+            bullet_height = HEIGHT * 2
+
+        return angle, tank_distance, bullet_distance, bullet_height
+
+
+    
